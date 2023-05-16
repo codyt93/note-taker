@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
 const fs = require('fs')
 const PORT = process.env.PORT || 3001;
@@ -23,20 +24,26 @@ app.use(express.static('public'));
 app.get('/notes', (req, res) =>
   res.sendFile(path.join(__dirname, '/public/notes.html'))
 );
-app.get("/api/notes", (req, res) =>{
-  fs.readFile("./db/db.json","utf-8",(error,data)=>{
+app.get("/api/notes", (req, res) => {
+  fs.readFile("./db/db.json", "utf-8", (error, data) => {
     res.send(data)
-  })  
-})
-app.post("/api/notes", (req, res) =>{
-    fs.readFile("./db/db.json","utf-8",(error,data)=>{
-        const notes = JSON.parse(data)
-        notes.push(req.body)
-        fs.writeFile("./db/db.json",JSON.stringify(notes),(error,data)=>{
-            res.json(data)
-          })  
-    })  
   })
+})
+app.post("/api/notes", (req, res) => {
+  fs.readFile("./db/db.json", "utf-8", (error, data) => {
+    const notes = JSON.parse(data)
+
+    const newNote = {
+      title: req.body.title, 
+      text: req.body.text,
+      id: uuidv4()
+    }
+    notes.push(newNote)
+    fs.writeFile("./db/db.json", JSON.stringify(notes), (error, data) => {
+      res.json(data)
+    })
+  })
+})
 // Wildcard route to direct users to a 404 page
 app.get('*', (req, res) =>
   res.sendFile(path.join(__dirname, 'public/index.html'))
